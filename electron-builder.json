@@ -9,10 +9,13 @@
   "npmRebuild": false,
   "files": [
     "src/**/*",
+    "!src/bin/qbittorrent/profile/**",
+    "!**/profile/**",
     "package.json"
   ],
   "asarUnpack": [
-    "src/bin/qbittorrent/**"
+    "src/bin/qbittorrent/**",
+    "!src/bin/qbittorrent/profile/**"
   ],
   "win": {
     "signtoolOptions": {

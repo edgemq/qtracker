@@ -42,8 +42,17 @@ class EmbeddedQBittorrent {
     return devPath;
   }
 
-  ensureConfig(exeDir, downloadDir) {
-    const configDir = path.join(exeDir, 'profile', 'qBittorrent', 'config');
+  getProfileDir() {
+    const appData = process.env.APPDATA || (process.platform === 'darwin' ? path.join(process.env.HOME, 'Library', 'Application Support') : path.join(process.env.HOME, '.config'));
+    const profileDir = path.join(appData, 'qtracker', 'qbit_profile');
+    if (!fs.existsSync(profileDir)) {
+      fs.mkdirSync(profileDir, { recursive: true });
+    }
+    return profileDir;
+  }
+
+  ensureConfig(profileDir, downloadDir) {
+    const configDir = path.join(profileDir, 'qBittorrent', 'config');
     if (!fs.existsSync(configDir)) {
       fs.mkdirSync(configDir, { recursive: true });
     }
@@ -144,10 +153,19 @@ Accepted=true
       }
 
       const exeDir = path.dirname(exePath);
-      this.ensureConfig(exeDir, downloadDir);
+      const profileDir = this.getProfileDir();
+      this.ensureConfig(profileDir, downloadDir);
 
-      // 2. Launch qBittorrent in completely silent mode
-      this.process = spawn(exePath, ['--no-splash'], {
+      // Clean up any stale profile left in bin directory
+      try {
+        const staleProfile = path.join(exeDir, 'profile');
+        if (fs.existsSync(staleProfile)) {
+          fs.rmSync(staleProfile, { recursive: true, force: true });
+        }
+      } catch (e) {}
+
+      // 2. Launch qBittorrent pointing strictly to user's AppData profile
+      this.process = spawn(exePath, ['--no-splash', '--profile', profileDir], {
         cwd: exeDir,
         windowsHide: true,
         detached: false,

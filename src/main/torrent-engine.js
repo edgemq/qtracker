@@ -232,7 +232,7 @@ class TorrentEngine {
   }
 
   _persistSnapshot() {
-    if (!this.cachedTorrents || this.cachedTorrents.length === 0) return;
+    if (!this.cachedTorrents) return;
     const toSave = this.cachedTorrents.map(t => ({
       topicId: t.topicId,
       name: t.name,
@@ -325,6 +325,15 @@ class TorrentEngine {
     this.cachedTorrents = this.cachedTorrents.filter(t => t.infoHash.toLowerCase() !== hashLower);
     this.metaMap.delete(hashLower);
     this.completedHashes.delete(hashLower);
+
+    // Also remove saved .torrent file from disk
+    try {
+      const torrentPath = path.join(store.userDataPath, 'torrents', `${hashLower}.torrent`);
+      if (fs.existsSync(torrentPath)) {
+        fs.unlinkSync(torrentPath);
+      }
+    } catch (e) {}
+
     this._persistSnapshot();
     if (this.onUpdateCallback) this.onUpdateCallback(this.cachedTorrents);
     return { success };
