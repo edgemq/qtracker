@@ -165,7 +165,7 @@ Accepted=true
       } catch (e) {}
 
       // 2. Launch qBittorrent pointing strictly to user's AppData profile
-      this.process = spawn(exePath, ['--no-splash', '--profile', profileDir], {
+      this.process = spawn(exePath, ['--no-splash', `--profile=${profileDir}`], {
         cwd: exeDir,
         windowsHide: true,
         detached: false,
