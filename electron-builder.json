@@ -1,0 +1,50 @@
+{
+  "appId": "org.qtracker.app",
+  "productName": "QTracker",
+  "copyright": "Copyright © 2026 QTracker Team",
+  "directories": {
+    "output": "dist",
+    "buildResources": "assets"
+  },
+  "npmRebuild": false,
+  "files": [
+    "src/**/*",
+    "package.json"
+  ],
+  "asarUnpack": [
+    "src/bin/qbittorrent/**"
+  ],
+  "win": {
+    "signtoolOptions": {
+      "certificateFile": "certs/qtracker.pfx",
+      "certificatePassword": "QTrackerDev2026!",
+      "rfc3161TimeStampServer": "http://timestamp.digicert.com"
+    },
+    "target": [
+      {
+        "target": "portable",
+        "arch": [
+          "x64"
+        ]
+      },
+      {
+        "target": "nsis",
+        "arch": [
+          "x64"
+        ]
+      }
+    ],
+    "requestedExecutionLevel": "asInvoker"
+  },
+  "portable": {
+    "artifactName": "QTracker-Portable-${version}.exe"
+  },
+  "nsis": {
+    "oneClick": false,
+    "perMachine": false,
+    "allowToChangeInstallationDirectory": true,
+    "createDesktopShortcut": true,
+    "createStartMenuShortcut": true,
+    "artifactName": "QTracker-Setup-${version}.exe"
+  }
+}

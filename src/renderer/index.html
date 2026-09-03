@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>QTracker — RuTracker Catalog & Autonomous Torrent Client</title>
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="app-container">
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar">
+      <div class="app-brand">
+        <div class="brand-icon">
+          <svg viewBox="0 0 24 24">
+            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+          </svg>
+        </div>
+        <span class="brand-title">QTracker</span>
+      </div>
+
+      <nav class="nav-menu">
+        <div class="nav-item active" data-tab="catalog" id="nav-catalog">
+          <svg viewBox="0 0 24 24">
+            <circle cx="11" cy="11" r="8"/>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+          </svg>
+          <span>Каталог и поиск</span>
+        </div>
+
+        <div class="nav-item" data-tab="downloads" id="nav-downloads">
+          <svg viewBox="0 0 24 24">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="7 10 12 15 17 10"/>
+            <line x1="12" y1="15" x2="12" y2="3"/>
+          </svg>
+          <span>Загрузки</span>
+          <span class="nav-counter" id="active-downloads-count">0</span>
+        </div>
+
+        <div class="nav-item" data-tab="settings" id="nav-settings">
+          <svg viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="3"/>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+          </svg>
+          <span>Настройки / Аккаунт</span>
+        </div>
+      </nav>
+
+      <!-- Auth status badge in sidebar footer -->
+      <div class="sidebar-footer">
+        <div class="auth-mini-card" id="sidebar-auth-card">
+          <div class="auth-dot" id="sidebar-auth-dot"></div>
+          <div class="auth-user-info">
+            <span class="auth-status-label" id="sidebar-auth-label">Статус RuTracker</span>
+            <span class="auth-user-name" id="sidebar-auth-user">Не авторизован</span>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content Wrapper -->
+    <main class="main-wrapper">
+      <!-- Top Stats Bar -->
+      <header class="top-stats-bar">
+        <div class="speed-gauges">
+          <div class="gauge-item download">
+            <div class="gauge-icon">
+              <svg viewBox="0 0 24 24">
+                <line x1="12" y1="5" x2="12" y2="19"/>
+                <polyline points="19 12 12 19 5 12"/>
+              </svg>
+            </div>
+            <div class="gauge-data">
+              <span class="gauge-label">Загрузка</span>
+              <span class="gauge-value" id="global-down-speed">0.0 МБ/с</span>
+            </div>
+          </div>
+
+          <div class="gauge-item upload">
+            <div class="gauge-icon">
+              <svg viewBox="0 0 24 24">
+                <line x1="12" y1="19" x2="12" y2="5"/>
+                <polyline points="5 12 12 5 19 12"/>
+              </svg>
+            </div>
+            <div class="gauge-data">
+              <span class="gauge-label">Отдача</span>
+              <span class="gauge-value" id="global-up-speed">0.0 КБ/с</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="top-actions">
+          <span style="font-size: 13px; color: var(--text-muted);" id="current-mirror-display">Зеркало: rutracker.org</span>
+        </div>
+      </header>
+
+      <!-- 1. CATALOG & SEARCH VIEW -->
+      <section class="content-view active" id="view-catalog">
+        <div class="search-header-container">
+          <div class="search-box-wrapper">
+            <svg viewBox="0 0 24 24">
+              <circle cx="11" cy="11" r="8"/>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+            </svg>
+            <input type="text" id="catalog-search-input" class="search-input" placeholder="Поиск по всему RuTracker (игры, программы, фильмы, музыка)..." autofocus>
+            <button class="search-btn" id="catalog-search-btn">
+              <span>Найти</span>
+            </button>
+          </div>
+
+          <!-- Dynamic Forum Filters Bar -->
+          <div class="forum-filters-bar" id="forum-filters-bar" style="display: none;">
+            <div class="forum-chips-label">
+              <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" fill="none" stroke-width="2">
+                <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
+              </svg>
+              <span>Форумы:</span>
+            </div>
+            <div class="forum-chips-scroll" id="forum-filter-chips"></div>
+          </div>
+        </div>
+
+        <div class="catalog-toolbar">
+          <span id="results-count-text">Введите поисковый запрос</span>
+          <div style="display: flex; align-items: center; gap: 14px;">
+            <div id="forum-select-wrapper" style="display: none; align-items: center; gap: 6px;">
+              <label for="catalog-forum-select" style="font-size: 12px; color: var(--text-muted);">Форум:</label>
+              <select id="catalog-forum-select" class="sort-select">
+                <option value="all">Все форумы</option>
+              </select>
+            </div>
+
+            <div style="display: flex; align-items: center; gap: 6px;">
+              <label for="catalog-sort-select" style="font-size: 12px; color: var(--text-muted);">Сортировка:</label>
+              <select id="catalog-sort-select" class="sort-select">
+                <option value="seeds">По сидерам</option>
+                <option value="date">По дате добавления</option>
+                <option value="size">По размеру</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Search Results List -->
+        <div class="results-container" id="catalog-results-list">
+          <div class="state-placeholder">
+            <svg viewBox="0 0 24 24">
+              <circle cx="11" cy="11" r="8"/>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+            </svg>
+            <p>Введите название приложения или выберите категорию и нажмите «Найти»</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- 2. DOWNLOADS VIEW -->
+      <section class="content-view" id="view-downloads">
+        <div class="downloads-header-bar">
+          <div class="downloads-stats-summary">
+            <span>Всего загрузок: <strong id="summary-total-count">0</strong></span>
+            <span>Активных: <strong id="summary-active-count">0</strong></span>
+            <span>Завершено: <strong id="summary-completed-count">0</strong></span>
+          </div>
+
+          <button class="btn-secondary" id="btn-open-download-dir" style="display: flex; align-items: center; gap: 6px;">
+            <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" fill="none" stroke-width="2">
+              <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+            </svg>
+            <span>Папка загрузок</span>
+          </button>
+        </div>
+
+        <div class="download-items-list" id="downloads-container">
+          <div class="state-placeholder" id="downloads-empty-state">
+            <svg viewBox="0 0 24 24">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+              <polyline points="7 10 12 15 17 10"/>
+              <line x1="12" y1="15" x2="12" y2="3"/>
+            </svg>
+            <p>Список загрузок пуст. Выберите программу в каталоге для скачивания.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- 3. SETTINGS & ACCOUNT VIEW -->
+      <section class="content-view" id="view-settings">
+        <div class="settings-container">
+          <!-- RuTracker Account Card -->
+          <div class="settings-card">
+            <div class="settings-card-title">
+              <svg viewBox="0 0 24 24" fill="none" stroke-width="2">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                <circle cx="12" cy="7" r="4"/>
+              </svg>
+              <span>Авторизация на RuTracker.org</span>
+            </div>
+
+            <div id="auth-status-banner" style="background: rgba(99, 102, 241, 0.1); border: 1px solid rgba(99, 102, 241, 0.3); padding: 12px 16px; border-radius: var(--radius-md); font-size: 14px; display: flex; align-items: center; justify-content: space-between;">
+              <span id="settings-auth-status-text">Статус: Не авторизован</span>
+              <button class="btn-secondary" id="btn-logout" style="display: none; padding: 6px 12px; font-size: 12px;">Выйти из аккаунта</button>
+            </div>
+
+            <!-- Standard Login Form -->
+            <div class="form-grid" id="login-form-area">
+              <div class="form-group">
+                <label class="form-label" for="login-username">Имя пользователя / Логин</label>
+                <input type="text" id="login-username" class="form-input" placeholder="Ваш логин на RuTracker">
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="login-password">Пароль</label>
+                <input type="password" id="login-password" class="form-input" placeholder="••••••••">
+              </div>
+
+              <div class="form-group full-width" style="margin-top: 4px;">
+                <div class="form-actions-row">
+                  <button class="btn-primary" id="btn-submit-login">Войти по логину и паролю</button>
+                  <button class="btn-secondary" id="btn-open-web-login" title="Если включена капча или проверка Cloudflare">
+                    🌐 Войти через встроенное окно браузера
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Alternative bb_session Cookie Login -->
+            <div style="border-top: 1px solid var(--border-subtle); padding-top: 16px; display: flex; flex-direction: column; gap: 10px;">
+              <span style="font-size: 13px; font-weight: 600; color: var(--text-highlight);">Альтернативный вход по cookie bb_session (обход капчи/Cloudflare):</span>
+              <div style="display: flex; gap: 10px;">
+                <input type="text" id="input-bb-session" class="form-input" style="flex: 1; font-family: var(--font-mono); font-size: 13px;" placeholder="Вставьте значение cookie bb_session (например: 0-12345678-abcdef...)">
+                <button class="btn-secondary" id="btn-apply-cookie">Применить cookie</button>
+              </div>
+              <p style="font-size: 11px; color: var(--text-muted);">
+                Подсказка: Вы можете скопировать куку <code>bb_session</code> из DevTools вашего обычного браузера, если RuTracker запрашивает графическую капчу.
+              </p>
+            </div>
+          </div>
+
+          <!-- Network, Mirrors and Proxy -->
+          <div class="settings-card">
+            <div class="settings-card-title">
+              <svg viewBox="0 0 24 24" fill="none" stroke-width="2">
+                <circle cx="12" cy="12" r="10"/>
+                <line x1="2" y1="12" x2="22" y2="12"/>
+                <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+              </svg>
+              <span>Сеть и обход блокировок</span>
+            </div>
+
+            <div class="form-grid">
+              <div class="form-group">
+                <label class="form-label" for="settings-mirror-select">Рабочее зеркало RuTracker</label>
+                <select id="settings-mirror-select" class="form-select">
+                  <option value="https://rutracker.org">https://rutracker.org (Основной домен)</option>
+                  <option value="https://rutracker.net">https://rutracker.net (Официальное зеркало)</option>
+                  <option value="https://rutracker.nl">https://rutracker.nl (Альтернативное)</option>
+                  <option value="custom">Пользовательский URL зеркала...</option>
+                </select>
+              </div>
+
+              <div class="form-group" id="custom-mirror-group" style="display: none;">
+                <label class="form-label" for="settings-custom-mirror">Свой адрес зеркала</label>
+                <input type="text" id="settings-custom-mirror" class="form-input" placeholder="https://my-mirror.com">
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="settings-proxy-type">Режим прокси</label>
+                <select id="settings-proxy-type" class="form-select">
+                  <option value="direct">Прямое соединение (без прокси / если есть VPN)</option>
+                  <option value="socks5">SOCKS5 Прокси</option>
+                  <option value="http">HTTP Прокси</option>
+                </select>
+              </div>
+
+              <div class="form-group proxy-field" style="display: none;">
+                <label class="form-label" for="settings-proxy-host">Хост прокси</label>
+                <input type="text" id="settings-proxy-host" class="form-input" placeholder="127.0.0.1">
+              </div>
+
+              <div class="form-group proxy-field" style="display: none;">
+                <label class="form-label" for="settings-proxy-port">Порт прокси</label>
+                <input type="number" id="settings-proxy-port" class="form-input" placeholder="1080">
+              </div>
+
+              <div class="form-group full-width">
+                <div class="form-actions-row">
+                  <button class="btn-secondary" id="btn-test-proxy">⚡ Проверить доступность RuTracker</button>
+                  <span id="proxy-test-result" style="font-size: 13px; color: var(--text-muted);"></span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Torrent Engine & Folders -->
+          <div class="settings-card">
+            <div class="settings-card-title">
+              <svg viewBox="0 0 24 24" fill="none" stroke-width="2">
+                <polyline points="4 17 10 11 4 5"/>
+                <line x1="12" y1="19" x2="20" y2="19"/>
+              </svg>
+              <span>Торрент-движок и папка загрузок</span>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Папка для скачивания по умолчанию</label>
+              <div style="display: flex; gap: 10px;">
+                <input type="text" id="settings-download-dir" class="form-input" style="flex: 1;" readonly>
+                <button class="btn-secondary" id="btn-browse-folder">Выбрать папку...</button>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="settings-engine-mode">Режим торрент-ядра</label>
+              <select id="settings-engine-mode" class="form-select">
+                <option value="builtin">Встроенный нативный C++ qBittorrent движок (libtorrent 5.2.3) — По умолчанию</option>
+                <option value="qbittorrent">Внешний qBittorrent WebAPI (localhost:8080)</option>
+              </select>
+            </div>
+
+            <div class="form-actions-row">
+              <button class="btn-primary" id="btn-save-settings">Сохранить все настройки</button>
+              <span id="settings-save-indicator" style="font-size: 13px; color: var(--accent-success); display: none;">Настройки сохранены!</span>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Topic Preview Modal -->
+  <div class="modal-overlay" id="preview-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 class="modal-title" id="modal-topic-title">Предпросмотр раздачи</h3>
+        <button class="modal-close-btn" id="modal-close-btn">
+          <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" fill="none" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"/>
+            <line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <div class="modal-description-content" id="modal-description-text">
+          <div class="spinner" style="margin: 40px auto;"></div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn-secondary" id="modal-cancel-btn">Закрыть</button>
+        <button class="btn-primary" id="modal-download-btn" style="display: flex; align-items: center; gap: 8px;">
+          <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" fill="none" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="7 10 12 15 17 10"/>
+            <line x1="12" y1="15" x2="12" y2="3"/>
+          </svg>
+          <span>Скачать и начать загрузку</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- In-App Image Lightbox Modal -->
+  <div class="lightbox-overlay" id="image-lightbox" style="display: none;">
+    <button class="lightbox-close-btn" id="lightbox-close-btn" title="Закрыть (Esc)">✕</button>
+    <div class="lightbox-container" id="lightbox-container">
+      <img id="lightbox-img" src="" alt="Скриншот в полном размере">
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="js/catalog.js"></script>
+  <script src="js/downloads.js"></script>
+  <script src="js/settings.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

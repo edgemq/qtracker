@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0a0e17"/>
+      <stop offset="50%" stop-color="#111827"/>
+      <stop offset="100%" stop-color="#1e1b4b"/>
+    </linearGradient>
+    <linearGradient id="neonGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#6366f1"/>
+      <stop offset="50%" stop-color="#06b6d4"/>
+      <stop offset="100%" stop-color="#10b981"/>
+    </linearGradient>
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="12" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+  </defs>
+
+  <!-- Background rounded rectangle -->
+  <rect width="512" height="512" rx="110" fill="url(#bgGrad)" stroke="rgba(255,255,255,0.1)" stroke-width="6"/>
+
+  <!-- Glowing outer ring -->
+  <circle cx="256" cy="256" r="170" fill="none" stroke="url(#neonGrad)" stroke-width="14" stroke-dasharray="16 12" opacity="0.4"/>
+
+  <!-- Torrent download arrow & Q letter geometry -->
+  <g filter="url(#glow)">
+    <!-- Main Arrow Down -->
+    <path d="M256 120 V330 M180 256 L256 332 L332 256" fill="none" stroke="url(#neonGrad)" stroke-width="32" stroke-linecap="round" stroke-linejoin="round"/>
+    <!-- Bottom tray / base -->
+    <path d="M150 360 C150 395 362 395 362 360" fill="none" stroke="url(#neonGrad)" stroke-width="28" stroke-linecap="round"/>
+    <!-- Lightning strike overlay -->
+    <polygon points="270,180 230,260 262,260 242,340 300,240 268,240" fill="#10b981" opacity="0.9"/>
+  </g>
+</svg>

@@ -1,0 +1,30 @@
+{
+  "name": "qtracker",
+  "version": "1.0.0",
+  "description": "Desktop RuTracker client and torrent manager",
+  "main": "src/main/index.js",
+  "scripts": {
+    "start": "electron .",
+    "build:win": "electron-builder --win --x64",
+    "dist": "electron-builder --win --x64 -p never"
+  },
+  "keywords": [
+    "rutracker",
+    "torrent",
+    "qbittorrent",
+    "desktop"
+  ],
+  "author": "edgemq",
+  "license": "MIT",
+  "dependencies": {
+    "cheerio": "^1.0.0-rc.12",
+    "iconv-lite": "^0.6.3",
+    "webtorrent": "^2.5.11",
+    "https-proxy-agent": "^7.0.6",
+    "socks-proxy-agent": "^8.0.5"
+  },
+  "devDependencies": {
+    "electron": "^33.2.1",
+    "electron-builder": "^25.1.8"
+  }
+}

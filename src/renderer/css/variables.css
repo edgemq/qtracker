@@ -1,0 +1,57 @@
+:root {
+  /* Surface & Background Hierarchy - Professional Engineered Dark */
+  --bg-primary: #0e0f12;       /* Canvas background */
+  --bg-secondary: #131518;     /* Sidebar & major panels */
+  --bg-card: #181a1f;          /* Cards & items */
+  --bg-card-hover: #1f2228;    /* Interactive card hover */
+  --bg-input: #111215;         /* Inputs & search boxes */
+  --bg-overlay: rgba(10, 11, 14, 0.85); /* Modal backdrops */
+  --bg-tag: rgba(255, 255, 255, 0.05);
+
+  /* Precise Subtle Borders */
+  --border-subtle: rgba(255, 255, 255, 0.08);
+  --border-medium: rgba(255, 255, 255, 0.14);
+  --border-focus: #3b82f6;
+  --border-active: #3b82f6;
+
+  /* Accents - Natural, Grounded & Crisp (No Radioactive Glows) */
+  --accent-primary: #3b82f6;       /* Solid Cobalt Blue */
+  --accent-primary-hover: #2563eb;
+  --accent-secondary: #0ea5e9;
+  --accent-success: #10b981;       /* True Emerald (Seeds / Done) */
+  --accent-warning: #f59e0b;       /* Warm Amber */
+  --accent-danger: #ef4444;        /* Crimson Red */
+
+  /* Functional Gradients (Subtle & Restrained) */
+  --gradient-accent: linear-gradient(180deg, #3b82f6 0%, #2563eb 100%);
+  --gradient-install: linear-gradient(180deg, #10b981 0%, #059669 100%);
+
+  /* Typography */
+  --font-main: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Inter', Helvetica, Arial, sans-serif;
+  --font-mono: 'JetBrains Mono', Consolas, 'Courier New', monospace;
+
+  /* Text Colors with Strict Contrast Ratio */
+  --text-primary: #f3f4f6;         /* Primary readable text */
+  --text-secondary: #9ca3af;       /* Secondary details & captions */
+  --text-muted: #6b7280;           /* Subtle labels, disabled text */
+  --text-highlight: #60a5fa;       /* Clickable links & active tabs */
+
+  /* Realistic Natural Shadows (No Neon Halos) */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.6);
+
+  /* Human-Ergonomic Desktop Radii */
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-full: 9999px;
+
+  /* Dimensions */
+  --sidebar-width: 220px;
+  --header-height: 54px;
+
+  /* Clean Native Transitions */
+  --transition-fast: 0.12s ease-out;
+  --transition-normal: 0.2s ease-out;
+}
