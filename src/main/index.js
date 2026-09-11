@@ -7,6 +7,7 @@ const rutracker = require('./rutracker');
 const torrentEngine = require('./torrent-engine');
 const installerModule = require('./installer');
 const qbitApi = require('./qbit-api');
+const autoUpdater = require('./auto-updater');
 
 let mainWindow = null;
 let updateInterval = null;
@@ -127,6 +128,16 @@ if (!gotTheLock) {
         });
       }
     } catch (e) {}
+
+    // Auto-check for updates 3 seconds after launch
+    setTimeout(async () => {
+      try {
+        const updateInfo = await autoUpdater.checkForUpdates();
+        if (updateInfo && updateInfo.updateAvailable && mainWindow && !mainWindow.isDestroyed()) {
+          mainWindow.webContents.send('updater:available', updateInfo);
+        }
+      } catch (e) {}
+    }, 3500);
 
     app.on('activate', () => {
       if (BrowserWindow.getAllWindows().length === 0) createWindow();
@@ -330,6 +341,36 @@ ipcMain.handle('app:open-external', async (event, url) => {
 
 ipcMain.handle('qbit:test', async () => {
   return await qbitApi.testConnection();
+});
+
+// --- Auto-Updater Handlers ---
+ipcMain.handle('updater:get-version', () => {
+  return autoUpdater.getCurrentVersion();
+});
+
+ipcMain.handle('updater:check', async () => {
+  return await autoUpdater.checkForUpdates();
+});
+
+ipcMain.handle('updater:download', async (event, { assetUrl, assetName }) => {
+  try {
+    const res = await autoUpdater.downloadUpdate(assetUrl, assetName, (progress) => {
+      if (mainWindow && !mainWindow.isDestroyed()) {
+        mainWindow.webContents.send('updater:progress', progress);
+      }
+    });
+    return { success: true, filePath: res.filePath };
+  } catch (err) {
+    return { success: false, error: err.message };
+  }
+});
+
+ipcMain.handle('updater:install', async () => {
+  try {
+    return autoUpdater.installUpdate();
+  } catch (err) {
+    return { success: false, error: err.message };
+  }
 });
 
 app.on('will-quit', async () => {

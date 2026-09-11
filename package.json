@@ -1,6 +1,6 @@
 {
   "name": "qtracker",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Desktop RuTracker client and torrent manager",
   "main": "src/main/index.js",
   "scripts": {

@@ -29,6 +29,12 @@ contextBridge.exposeInMainWorld('qtracker', {
   testProxy: (testUrl) => ipcRenderer.invoke('proxy:test', testUrl),
   testQbit: () => ipcRenderer.invoke('qbit:test'),
 
+  // Auto-Updater
+  getAppVersion: () => ipcRenderer.invoke('updater:get-version'),
+  checkForUpdates: () => ipcRenderer.invoke('updater:check'),
+  downloadUpdate: (params) => ipcRenderer.invoke('updater:download', params),
+  installUpdate: () => ipcRenderer.invoke('updater:install'),
+
   // Subscriptions / Events
   onTorrentUpdate: (callback) => {
     const handler = (event, data) => callback(data);
@@ -39,5 +45,15 @@ contextBridge.exposeInMainWorld('qtracker', {
     const handler = (event, data) => callback(data);
     ipcRenderer.on('auth:status', handler);
     return () => ipcRenderer.removeListener('auth:status', handler);
+  },
+  onUpdateAvailable: (callback) => {
+    const handler = (event, data) => callback(data);
+    ipcRenderer.on('updater:available', handler);
+    return () => ipcRenderer.removeListener('updater:available', handler);
+  },
+  onUpdateProgress: (callback) => {
+    const handler = (event, data) => callback(data);
+    ipcRenderer.on('updater:progress', handler);
+    return () => ipcRenderer.removeListener('updater:progress', handler);
   }
 });

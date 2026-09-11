@@ -4,6 +4,7 @@ document.addEventListener('DOMContentLoaded', () => {
   CatalogModule.init();
   DownloadsModule.init();
   SettingsModule.init();
+  UpdaterModule.init();
 
   // Tab Navigation Handling
   const navItems = document.querySelectorAll('.nav-item');
