@@ -438,6 +438,13 @@
   border: 1px solid rgba(16, 185, 129, 0.3);
 }
 
+.download-status-badge.status-seeding,
+.download-status-badge.seeding {
+  background: rgba(14, 165, 233, 0.16);
+  color: #38bdf8;
+  border: 1px solid rgba(14, 165, 233, 0.35);
+}
+
 .download-status-badge.status-paused,
 .download-status-badge.paused {
   background: rgba(255, 255, 255, 0.06);
@@ -549,6 +556,12 @@
   background: rgba(239, 68, 68, 0.12);
   color: var(--accent-danger);
   border-color: rgba(239, 68, 68, 0.3);
+}
+
+.btn-card-action.btn-stop-seed:hover {
+  background: rgba(245, 158, 11, 0.12);
+  color: #fbbf24;
+  border-color: rgba(245, 158, 11, 0.35);
 }
 
 .btn-card-action.btn-install {

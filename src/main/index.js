@@ -282,10 +282,20 @@ ipcMain.handle('settings:get', () => {
   return store.getSettings();
 });
 
-ipcMain.handle('settings:save', (event, newSettings) => {
+ipcMain.handle('settings:save', async (event, newSettings) => {
   const updated = store.updateSettings(newSettings);
   if (updated.proxy) {
     proxyManager.configure(updated.proxy);
+  }
+  if (updated.autoStopSeeding && torrentEngine) {
+    const list = torrentEngine.getAllTorrents() || [];
+    for (const t of list) {
+      if ((t.progress >= 1 || t.status === 'seeding') && t.status !== 'paused' && t.infoHash) {
+        try {
+          await torrentEngine.pauseTorrent(t.infoHash);
+        } catch (e) {}
+      }
+    }
   }
   return updated;
 });

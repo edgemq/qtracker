@@ -29,6 +29,7 @@ const SettingsModule = {
     this.downloadDirInput = document.getElementById('settings-download-dir');
     this.btnBrowseFolder = document.getElementById('btn-browse-folder');
     this.engineModeSelect = document.getElementById('settings-engine-mode');
+    this.autoStopSeedingInput = document.getElementById('settings-auto-stop-seeding');
     this.btnSaveSettings = document.getElementById('btn-save-settings');
     this.saveIndicator = document.getElementById('settings-save-indicator');
 
@@ -111,6 +112,9 @@ const SettingsModule = {
     // Fill paths and engine
     this.downloadDirInput.value = this.currentSettings.downloadDir || '';
     this.engineModeSelect.value = this.currentSettings.engineMode || 'builtin';
+    if (this.autoStopSeedingInput) {
+      this.autoStopSeedingInput.checked = !!this.currentSettings.autoStopSeeding;
+    }
 
     // Check auth status
     const auth = this.currentSettings.auth || {};
@@ -279,7 +283,8 @@ const SettingsModule = {
       mirror,
       proxy: proxyConfig,
       downloadDir: this.downloadDirInput.value.trim(),
-      engineMode: this.engineModeSelect.value
+      engineMode: this.engineModeSelect.value,
+      autoStopSeeding: this.autoStopSeedingInput ? this.autoStopSeedingInput.checked : false
     };
 
     const saved = await window.qtracker.saveSettings(newSettings);

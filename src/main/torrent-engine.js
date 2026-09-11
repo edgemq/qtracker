@@ -160,23 +160,25 @@ class TorrentEngine {
 
         let status = 'downloading';
         const state = (t.state || '').toLowerCase();
+        const isPaused = state.includes('pause') || state.includes('stop');
 
-        if (state.includes('pause') || state.includes('stop')) {
-          status = t.progress >= 1 ? 'completed' : 'paused';
-        } else if (state.includes('up') || state.includes('complete') || t.progress >= 1) {
-          status = 'completed';
+        if (isPaused) {
+          status = 'paused';
+        } else if (state.includes('up') || t.progress >= 1) {
+          status = 'seeding';
         } else if (state.includes('check')) {
           status = 'checking';
         } else if (state.includes('error')) {
           status = 'error';
         }
 
-        const isNewlyCompleted = status === 'completed' && !this.completedHashes.has(hash);
+        const isNewlyCompleted = (status === 'seeding' || status === 'completed') && !this.completedHashes.has(hash);
         if (isNewlyCompleted && t.progress >= 1) {
           this.completedHashes.add(hash);
           this._handleTorrentCompleted(t, meta);
         }
 
+        const isDoneOrSeeding = status === 'completed' || status === 'seeding' || (isPaused && t.progress >= 1);
         const etaMs = typeof t.eta === 'number' && t.eta > 0 && t.eta < 8640000 ? t.eta * 1000 : 0;
         const totalPeers = (t.num_leechs || 0) + (t.num_seeds || 0);
         const swarmPeers = (t.num_incomplete || 0) + (t.num_complete || 0);
@@ -191,9 +193,9 @@ class TorrentEngine {
           progress: typeof t.progress === 'number' ? t.progress : 0,
           downloaded: t.downloaded || 0,
           total: t.total_size || t.size || 0,
-          downloadSpeed: status === 'completed' ? 0 : (t.dlspeed || 0),
-          uploadSpeed: t.upspeed || 0,
-          timeRemaining: status === 'completed' ? 0 : etaMs,
+          downloadSpeed: isDoneOrSeeding ? 0 : (t.dlspeed || 0),
+          uploadSpeed: isPaused ? 0 : (t.upspeed || 0),
+          timeRemaining: isDoneOrSeeding ? 0 : etaMs,
           numPeers: totalPeers,
           totalPeers: Math.max(totalPeers, swarmPeers),
           status
@@ -219,8 +221,20 @@ class TorrentEngine {
     }
   }
 
-  _handleTorrentCompleted(torrent, meta) {
+  async _handleTorrentCompleted(torrent, meta) {
     const torrentName = meta.name || torrent.name || 'Раздача';
+
+    try {
+      const settings = store.getSettings();
+      if (settings.autoStopSeeding) {
+        const hash = (torrent.hash || '').toLowerCase();
+        if (hash) {
+          await qbitApi.pauseTorrent(hash);
+        }
+      }
+    } catch (e) {
+      console.warn('Auto-stop seeding failed:', e.message);
+    }
 
     // Show clean Windows desktop notification without installer prompts
     try {
@@ -313,7 +327,7 @@ class TorrentEngine {
     const success = await qbitApi.resumeTorrent(infoHash);
     const rec = this.cachedTorrents.find(t => t.infoHash.toLowerCase() === infoHash.toLowerCase());
     if (rec) {
-      rec.status = 'downloading';
+      rec.status = (rec.progress >= 1) ? 'seeding' : 'downloading';
       if (this.onUpdateCallback) this.onUpdateCallback(this.cachedTorrents);
     }
     return { success };

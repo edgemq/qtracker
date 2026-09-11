@@ -46,7 +46,7 @@ const DownloadsModule = {
       totalDown += (t.downloadSpeed || 0);
       totalUp += (t.uploadSpeed || 0);
       if (t.status === 'downloading') activeCount++;
-      if (t.status === 'completed' || t.progress >= 1) completedCount++;
+      if (t.status === 'completed' || t.status === 'seeding' || (t.progress >= 1)) completedCount++;
     });
 
     // Update global speed gauges
@@ -67,6 +67,50 @@ const DownloadsModule = {
     }
 
     this.render();
+  },
+
+  renderActionButtons(t, isDone) {
+    const isPaused = t.status === 'paused';
+    let pauseResumeBtn = '';
+
+    if (!isDone) {
+      pauseResumeBtn = `
+        <button class="btn-card-action btn-pause-resume" data-action="${isPaused ? 'resume' : 'pause'}" data-infohash="${t.infoHash}" title="${isPaused ? 'Возобновить скачивание' : 'Пауза'}">
+          <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" fill="none" stroke-width="2">
+            ${isPaused ? '<polygon points="5 3 19 12 5 21 5 3"/>' : '<rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/>'}
+          </svg>
+          <span>${isPaused ? 'Возобновить' : 'Пауза'}</span>
+        </button>
+      `;
+    } else {
+      pauseResumeBtn = `
+        <button class="btn-card-action btn-pause-resume ${isPaused ? '' : 'btn-stop-seed'}" data-action="${isPaused ? 'resume' : 'pause'}" data-infohash="${t.infoHash}" title="${isPaused ? 'Включить раздачу' : 'Выключить раздачу'}">
+          <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" fill="none" stroke-width="2">
+            ${isPaused ? '<polygon points="5 3 19 12 5 21 5 3"/>' : '<rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/>'}
+          </svg>
+          <span>${isPaused ? 'Раздавать' : 'Остановить раздачу'}</span>
+        </button>
+      `;
+    }
+
+    return `
+      <button class="btn-card-action" data-action="open-folder" data-infohash="${t.infoHash}" title="Открыть папку с файлами в проводнике">
+        <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" fill="none" stroke-width="2">
+          <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+        </svg>
+        <span>Открыть папку</span>
+      </button>
+
+      ${pauseResumeBtn}
+
+      <button class="btn-card-action danger" data-action="delete" data-infohash="${t.infoHash}" title="Удалить раздачу">
+        <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" fill="none" stroke-width="2">
+          <polyline points="3 6 5 6 21 6"/>
+          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+        </svg>
+        <span>Удалить</span>
+      </button>
+    `;
   },
 
   render() {
@@ -91,31 +135,57 @@ const DownloadsModule = {
       activeHashes.add(t.infoHash);
       let card = existingCards.get(t.infoHash);
 
-      const isDone = t.status === 'completed' || t.progress >= 1;
+      const isDone = t.status === 'completed' || t.status === 'seeding' || (t.progress >= 1);
       const isChecking = t.status === 'checking';
+      const isPaused = t.status === 'paused';
       const percent = Math.min(100, Math.round((t.progress || 0) * 100));
 
       const downloadedStr = this.formatBytes(t.downloaded || 0);
       const totalStr = this.formatBytes(t.total || 0);
-      const speedStr = isDone ? '—' : (isChecking ? 'Сверка хэшей диска...' : this.formatSpeed(t.downloadSpeed || 0));
+
+      let speedStr = '—';
+      if (isChecking) {
+        speedStr = 'Сверка хэшей диска...';
+      } else if (!isDone) {
+        speedStr = `Скорость: ${this.formatSpeed(t.downloadSpeed || 0)}`;
+      } else {
+        if (isPaused) {
+          speedStr = 'Раздача остановлена';
+        } else if (t.uploadSpeed && t.uploadSpeed > 0) {
+          speedStr = `Раздача: ${this.formatSpeed(t.uploadSpeed)}`;
+        } else {
+          speedStr = 'Раздача: 0 Б/с';
+        }
+      }
+
       const etaStr = isDone ? 'Готово' : (isChecking ? `Проверено ${percent}%` : (t.downloadSpeed > 2048 ? this.formatETA(t.timeRemaining || 0) : '—'));
 
       let statusLabel = 'Скачивание';
       let statusClass = 'status-downloading';
 
       if (isDone) {
-        statusLabel = 'Завершено';
-        statusClass = 'status-completed';
+        if (isPaused) {
+          statusLabel = 'Завершено (пауза)';
+          statusClass = 'status-paused';
+        } else if (t.status === 'seeding' || (t.uploadSpeed && t.uploadSpeed > 0)) {
+          statusLabel = 'Раздаётся';
+          statusClass = 'status-seeding';
+        } else {
+          statusLabel = 'Завершено';
+          statusClass = 'status-completed';
+        }
       } else if (isChecking) {
         statusLabel = `Проверка файлов (${percent}%)`;
         statusClass = 'status-checking';
-      } else if (t.status === 'paused') {
+      } else if (isPaused) {
         statusLabel = 'На паузе';
         statusClass = 'status-paused';
       } else if (t.status === 'error') {
         statusLabel = 'Ошибка';
         statusClass = 'status-error';
       }
+
+      const stateKey = `${t.status}_${isDone ? 1 : 0}`;
 
       // If card doesn't exist yet, create its full DOM structure once
       if (!card) {
@@ -143,36 +213,14 @@ const DownloadsModule = {
           <div class="download-metrics-row">
             <div class="metrics-left">
               <span class="metric-progress"><strong>${percent}%</strong> (${downloadedStr} / ${totalStr})</span>
-              <span class="metric-speed">Скорость: ${speedStr}</span>
+              <span class="metric-speed">${speedStr}</span>
               <span class="metric-eta">Осталось: ${etaStr}</span>
               <span class="metric-peers">Сиды/Пиры: ${t.numPeers || 0}${t.totalPeers && t.totalPeers > (t.numPeers || 0) ? ` (${t.totalPeers})` : ''}</span>
             </div>
           </div>
 
           <div class="download-actions-row">
-            <button class="btn-card-action" data-action="open-folder" data-infohash="${t.infoHash}" title="Открыть папку с файлами в проводнике">
-              <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" fill="none" stroke-width="2">
-                <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
-              </svg>
-              <span>Открыть папку</span>
-            </button>
-
-            ${!isDone ? `
-              <button class="btn-card-action btn-pause-resume" data-action="${t.status === 'paused' ? 'resume' : 'pause'}" data-infohash="${t.infoHash}">
-                <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" fill="none" stroke-width="2">
-                  ${t.status === 'paused' ? '<polygon points="5 3 19 12 5 21 5 3"/>' : '<rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/>'}
-                </svg>
-                <span>${t.status === 'paused' ? 'Возобновить' : 'Пауза'}</span>
-              </button>
-            ` : ''}
-
-            <button class="btn-card-action danger" data-action="delete" data-infohash="${t.infoHash}" title="Удалить раздачу">
-              <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" fill="none" stroke-width="2">
-                <polyline points="3 6 5 6 21 6"/>
-                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
-              </svg>
-              <span>Удалить</span>
-            </button>
+            ${this.renderActionButtons(t, isDone)}
           </div>
         `;
 
@@ -183,7 +231,7 @@ const DownloadsModule = {
         card._metricSpeed = card.querySelector('.metric-speed');
         card._metricEta = card.querySelector('.metric-eta');
         card._metricPeers = card.querySelector('.metric-peers');
-        card._lastStatus = t.status;
+        card._lastStateKey = stateKey;
 
         // Bind button actions
         this.bindCardActions(card);
@@ -192,13 +240,13 @@ const DownloadsModule = {
       } else {
         if (card._progressFill) card._progressFill.style.width = `${percent}%`;
         if (card._metricProgress) card._metricProgress.innerHTML = `<strong>${percent}%</strong> (${downloadedStr} / ${totalStr})`;
-        if (card._metricSpeed) card._metricSpeed.textContent = `Скорость: ${speedStr}`;
+        if (card._metricSpeed) card._metricSpeed.textContent = speedStr;
         if (card._metricEta) card._metricEta.textContent = `Осталось: ${etaStr}`;
         if (card._metricPeers) {
           const peersLabel = (t.totalPeers && t.totalPeers > (t.numPeers || 0))
             ? `${t.numPeers || 0} (${t.totalPeers})`
             : `${t.numPeers || 0}`;
-          card._metricPeers.textContent = `Сиды/Пиры: ${peersLabel}`;
+          card._metricPeers.textContent = isDone ? `Пиры: ${t.numPeers || 0}` : `Сиды/Пиры: ${peersLabel}`;
         }
 
         // Keep checking progress dynamic in badge
@@ -207,8 +255,8 @@ const DownloadsModule = {
         }
 
         // If status changed, update badge and re-render action buttons
-        if (card._lastStatus !== t.status) {
-          card._lastStatus = t.status;
+        if (card._lastStateKey !== stateKey) {
+          card._lastStateKey = stateKey;
           card.className = `download-card ${isDone ? 'completed' : ''} ${isChecking ? 'checking' : ''}`;
           if (card._progressFill) {
             card._progressFill.className = `progress-bar-fill ${isChecking ? 'checking' : (isDone ? 'completed' : '')}`;
@@ -219,31 +267,7 @@ const DownloadsModule = {
           }
           const actionsRow = card.querySelector('.download-actions-row');
           if (actionsRow) {
-            actionsRow.innerHTML = `
-              <button class="btn-card-action" data-action="open-folder" data-infohash="${t.infoHash}" title="Открыть папку с файлами в проводнике">
-                <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" fill="none" stroke-width="2">
-                  <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
-                </svg>
-                <span>Открыть папку</span>
-              </button>
-
-              ${!isDone ? `
-                <button class="btn-card-action btn-pause-resume" data-action="${t.status === 'paused' ? 'resume' : 'pause'}" data-infohash="${t.infoHash}">
-                  <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" fill="none" stroke-width="2">
-                    ${t.status === 'paused' ? '<polygon points="5 3 19 12 5 21 5 3"/>' : '<rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/>'}
-                  </svg>
-                  <span>${t.status === 'paused' ? 'Возобновить' : 'Пауза'}</span>
-                </button>
-              ` : ''}
-
-              <button class="btn-card-action danger" data-action="delete" data-infohash="${t.infoHash}" title="Удалить раздачу">
-                <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" fill="none" stroke-width="2">
-                  <polyline points="3 6 5 6 21 6"/>
-                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
-                </svg>
-                <span>Удалить</span>
-              </button>
-            `;
+            actionsRow.innerHTML = this.renderActionButtons(t, isDone);
             this.bindCardActions(card);
           }
         }

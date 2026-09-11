@@ -45,6 +45,7 @@ class Store {
         password: ''
       },
       autoInstallPrompt: true,
+      autoStopSeeding: false,
       maxDownloadSpeed: 0, // 0 = unlimited, in KB/s
       maxUploadSpeed: 0
     };
